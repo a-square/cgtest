@@ -169,12 +169,18 @@ static void initialize_objects() {
     ); verify_gl();
 }
 
-int main() {
+int main(int argc, char **argv) {
+    argc--; argv++;
+    
     // use system locale so that we can print UTF-8 to the console
     setlocale(LC_ALL, "");
     
     // initialize the OpenGL context
-    make_window_return_t actual_size = make_window(.title = "Old-school CG", .fullscreen = true);
+    bool fullscreen = (argc > 0 && strcmp(argv[0], "--fullscreen") == 0);
+    make_window_return_t actual_size = make_window(
+        .title = "Old-school CG",
+        .fullscreen = fullscreen
+    );
     g_screen_width = actual_size.width;
     g_screen_height = actual_size.height;
     
