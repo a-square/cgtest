@@ -85,6 +85,10 @@ static void loop() {
 }
 
 static void initialize_objects() {
+    // prepare memory for frames
+    g_frames[0] = create_frame();
+    g_frames[1] = create_frame();
+    
     glDisable(GL_DITHER); verify_gl();
     
     GLuint vertex_array;
@@ -184,10 +188,6 @@ int main(int argc, char **argv) {
     g_screen_width = actual_size.width;
     g_screen_height = actual_size.height;
     
-    // prepare memory for frames
-    g_frames[0] = create_frame();
-    g_frames[1] = create_frame();
-        
     initialize_objects();
     
     // game-specific initialization
