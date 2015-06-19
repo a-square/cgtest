@@ -79,6 +79,11 @@ static void render_loop_p(render_loop_params_t p) {
             }
         }
         
+        // pump pending input events to the game
+        SDL_Event event;
+        while (SDL_PollEvent(&event)) {
+            handle_event(&event);
+        }
         
         // draw the screen quad and swap buffers
         draw_frame(current_frame);
@@ -109,12 +114,6 @@ void *game_loop_thread(void *context __attribute__((unused))) {
         // get current ticks (to be used by the game)
         u32 ticks = SDL_GetTicks();
         
-        // pump pending input events to the game
-        SDL_Event event;
-        while (SDL_PollEvent(&event)) {
-            handle_event(&event);
-        }
-
         // game-specific software rendering
         g_frames[current_frame].ticks = ticks;
         next_frame(
