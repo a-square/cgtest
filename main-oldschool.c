@@ -1,6 +1,7 @@
 #include <stddef.h>
 #include <locale.h>
 #include <getopt.h>
+#include <pthread.h>
 #include <SDL.h>
 #include <gl3.h>
 #include "util.h"
@@ -15,9 +16,13 @@ static vertex_t g_vs[4];
 static GLuint g_shaders;
 
 static frame_t g_frames[2];
-static int g_current_frame = 0;
+static pthread_mutex_t g_frame_mutexes[2];
 
 int g_screen_width, g_screen_height;
+
+//
+// game initialization
+//
 
 static frame_t create_frame() {
     return (frame_t) {
@@ -26,7 +31,11 @@ static frame_t create_frame() {
     };
 }
 
-static void draw_frame() {
+//
+// render loop
+//
+
+static void draw_frame(int current_frame) {
     // upload the frame to the GPU
     glTexImage2D(
         GL_TEXTURE_RECTANGLE,
@@ -37,28 +46,29 @@ static void draw_frame() {
         0,
         GL_RGBA,
         GL_UNSIGNED_BYTE,
-        g_frames[g_current_frame].buffer
+        g_frames[current_frame].buffer
     ); verify_gl();
 
     glDrawArrays(GL_TRIANGLE_FAN, 0, sizeof(g_vs) / sizeof(*g_vs)); verify_gl();
 }
 
-typedef struct loop_params {
+typedef struct render_loop_params {
     bool emit_fps;
-} loop_params_t;
-#define loop(...) loop_p((loop_params_t){ __VA_ARGS__ })
-static void loop_p(loop_params_t p) {
-    static u32 lastFPSReport = 0, frameCounter = 0;
-    static const u32 fpsInterval = 3000;
+} render_loop_params_t;
+#define render_loop(...) render_loop_p((render_loop_params_t){ __VA_ARGS__ })
+static void render_loop_p(render_loop_params_t p) {
+    u32 lastFPSReport = 0, frameCounter = 0;
+    const u32 fpsInterval = 3000;
+    
+    int current_frame = 1, prev_frame = 1 - current_frame;
 
     for (;;) {
-        // pass all pending events to the game
-        SDL_Event event;
-        while (SDL_PollEvent(&event)) {
-            handle_event(&event);
-        }
+        verify_posix(
+            pthread_mutex_lock(&g_frame_mutexes[current_frame]),
+            "Render loop mutex lock"
+        );
         
-        // get ticks and emit the FPS counter if needed
+        // emit the FPS counter if needed
         u32 ticks = SDL_GetTicks();
         if (p.emit_fps) {
             frameCounter++;
@@ -69,27 +79,88 @@ static void loop_p(loop_params_t p) {
             }
         }
         
-        int prev_frame = 1 - g_current_frame;
         
-        // update the tick count of the current frame
-        g_frames[g_current_frame].ticks = ticks;
+        // draw the screen quad and swap buffers
+        draw_frame(current_frame);
+        swap_window_buffers();
         
+        verify_posix(
+            pthread_mutex_unlock(&g_frame_mutexes[current_frame]),
+            "Render loop mutex unlock"
+        );
+
+        current_frame = prev_frame;        
+        prev_frame = 1 - current_frame;
+    }
+}
+
+//
+// game loop
+//
+
+void *game_loop_thread(void *context __attribute__((unused))) {
+    int current_frame = 0, prev_frame = 1 - current_frame;
+    for (;;) {
+        verify_posix(
+            pthread_mutex_lock(&g_frame_mutexes[current_frame]),
+            "Game loop mutex lock"
+        );
+        
+        // get current ticks (to be used by the game)
+        u32 ticks = SDL_GetTicks();
+        
+        // pump pending input events to the game
+        SDL_Event event;
+        while (SDL_PollEvent(&event)) {
+            handle_event(&event);
+        }
+
         // game-specific software rendering
+        g_frames[current_frame].ticks = ticks;
         next_frame(
             .front = g_frames[prev_frame].buffer,
-            .back = g_frames[g_current_frame].buffer,
-            .ticks = g_frames[g_current_frame].ticks,
+            .back = g_frames[current_frame].buffer,
+            .ticks = g_frames[current_frame].ticks,
             .prev_ticks = g_frames[prev_frame].ticks,
         );
         
-        // draw the screen quad and swap buffers
-        draw_frame();
+        verify_posix(
+            pthread_mutex_unlock(&g_frame_mutexes[current_frame]),
+            "Game loop mutex unlock"
+        );
         
-        // swap buffers (including our textures)
-        swap_window_buffers();
-        g_current_frame = prev_frame;        
+        current_frame = prev_frame;
+        prev_frame = 1 - current_frame;
     }
+    
+    return NULL;
 }
+
+void game_loop() {
+    for (int i = 0; i < 2; ++i) {
+        pthread_mutexattr_t attr;
+        pthread_mutexattr_init(&attr);
+        pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_NORMAL);
+        pthread_mutexattr_setprotocol(&attr, PTHREAD_PRIO_NONE);
+        
+        verify_posix(
+            pthread_mutex_init(&g_frame_mutexes[i], &attr),
+            "Could not create a mutex"
+        );
+            
+        pthread_mutexattr_destroy(&attr);
+    }
+    
+    pthread_t game_thread;
+    verify_posix(
+        pthread_create(&game_thread, NULL, game_loop_thread, NULL),
+        "Could not create the game loop thread"
+    );
+}
+
+//
+// OpenGL initialization
+//
 
 static void initialize_objects() {
     // prepare memory for frames
@@ -180,6 +251,10 @@ static void initialize_objects() {
     ); verify_gl();
 }
 
+//
+// argument parsing and usage
+//
+
 typedef struct args {
     bool help;
     
@@ -237,6 +312,10 @@ void usage() {
     fputs(message, stderr);
 }
 
+//
+// main
+//
+
 int main(int argc, char **argv) {
     args_t args = parse_arguments(argc, argv);
     if (args.help) {
@@ -261,8 +340,9 @@ int main(int argc, char **argv) {
     // game-specific initialization
     init();
     
-    // game loop
-    loop(.emit_fps = args.fps);
+    // dual loops
+    game_loop();
+    render_loop(.emit_fps = args.fps);
     
     // call destroy_window from the event handler to quit
     // destroy_window();

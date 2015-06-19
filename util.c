@@ -9,6 +9,10 @@
 static SDL_Window *g_window = NULL;
 static SDL_GLContext g_context = NULL;
 
+void verify_posix(int errnum, const char *message) {
+    verify(errnum == 0, "%s: %s", message, strerror(errnum));
+}
+
 void verify_gl() {    
     GLenum error = glGetError();
     if (error) {

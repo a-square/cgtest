@@ -21,6 +21,8 @@ extern void abort();
 
 // misc. verify specializations
 
+void verify_posix(int errnum, const char *message);
+
 void verify_gl();
 void verify_gl_shader(GLuint shader);
 void verify_gl_program(GLuint program);
