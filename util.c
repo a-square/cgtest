@@ -119,11 +119,18 @@ make_window_return_t make_window_p(make_window_params_t p) {
     g_context = SDL_GL_CreateContext(g_window);
     verify(g_context, "Could not initialize OpenGL: %s", SDL_GetError());
     
-    verify(
-        SDL_GL_SetSwapInterval(-1) == 0 || SDL_GL_SetSwapInterval(1) == 0,
-        "Could not set the swap interval: %s", SDL_GetError()
-    );
-    SDL_ClearError();
+    if (p.vsync) {
+        verify(
+            SDL_GL_SetSwapInterval(-1) == 0 || SDL_GL_SetSwapInterval(1) == 0,
+            "Could not set the swap interval: %s", SDL_GetError()
+        );
+        SDL_ClearError();
+    } else {
+        verify(
+            SDL_GL_SetSwapInterval(0) == 0,
+            "Could not set the swap interval: %s", SDL_GetError()
+        );
+    }
     
     make_window_return_t r;
     SDL_GL_GetDrawableSize(g_window, &r.width, &r.height);

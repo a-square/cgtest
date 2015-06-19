@@ -183,7 +183,8 @@ int main(int argc, char **argv) {
     bool fullscreen = (argc > 0 && strcmp(argv[0], "--fullscreen") == 0);
     make_window_return_t actual_size = make_window(
         .title = "Old-school CG",
-        .fullscreen = fullscreen
+        .fullscreen = fullscreen,
+        .vsync = false,
     );
     g_screen_width = actual_size.width;
     g_screen_height = actual_size.height;

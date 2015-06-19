@@ -39,6 +39,7 @@ typedef struct make_window_params {
     const char *title;
     int width, height;
     bool fullscreen;
+    bool vsync;
 } make_window_params_t;
 
 typedef struct make_window_return {
@@ -51,6 +52,7 @@ make_window_return_t make_window_p(make_window_params_t);
     .width = 640, \
     .height = 480, \
     .fullscreen = false, \
+    .vsync = false, \
     __VA_ARGS__ \
 })
 
