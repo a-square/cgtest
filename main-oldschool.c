@@ -1,5 +1,6 @@
 #include <stddef.h>
 #include <locale.h>
+#include <getopt.h>
 #include <SDL.h>
 #include <gl3.h>
 #include "util.h"
@@ -42,7 +43,11 @@ static void draw_frame() {
     glDrawArrays(GL_TRIANGLE_FAN, 0, sizeof(g_vs) / sizeof(*g_vs)); verify_gl();
 }
 
-static void loop() {
+typedef struct loop_params {
+    bool emit_fps;
+} loop_params_t;
+#define loop(...) loop_p((loop_params_t){ __VA_ARGS__ })
+static void loop_p(loop_params_t p) {
     static u32 lastFPSReport = 0, frameCounter = 0;
     static const u32 fpsInterval = 3000;
 
@@ -55,11 +60,13 @@ static void loop() {
         
         // get ticks and emit the FPS counter if needed
         u32 ticks = SDL_GetTicks();
-        frameCounter++;
-        if (ticks >= lastFPSReport + fpsInterval) {
-            log_printf("FPS: %g", frameCounter / ((ticks - lastFPSReport) / 1000.f));
-            lastFPSReport = ticks;
-            frameCounter = 0;
+        if (p.emit_fps) {
+            frameCounter++;
+            if (ticks >= lastFPSReport + fpsInterval) {
+                log_printf("FPS: %g", frameCounter / ((ticks - lastFPSReport) / 1000.f));
+                lastFPSReport = ticks;
+                frameCounter = 0;
+            }
         }
         
         int prev_frame = 1 - g_current_frame;
@@ -173,18 +180,78 @@ static void initialize_objects() {
     ); verify_gl();
 }
 
+typedef struct args {
+    bool help;
+    
+    bool fullscreen;
+    bool vsync;
+    bool fps;
+} args_t;
+
+args_t parse_arguments(int argc, char **argv) {
+    args_t args = {
+        .help = false,
+        .fullscreen = false,
+        .vsync = false,
+        .fps = false,
+    };
+    
+    static struct option longopts[] = {
+        { "help",       no_argument,        NULL,       'h' },
+        { "fullscreen", no_argument,        NULL,       'f' },
+        { "vsync",      no_argument,        NULL,       's' },
+        { "fps",        no_argument,        NULL,       'p' },
+        { NULL,         0,                  NULL,       0   }
+    };
+    
+    int ch;
+    while ((ch = getopt_long(argc, argv, "hfsp", longopts, NULL)) != -1) {
+        switch (ch) {
+        case 'f':
+            args.fullscreen = true;
+            break;
+        case 's':
+            args.vsync = true;
+            break;
+        case 'p':
+            args.fps = true;
+            break;
+        case 'h':
+        default:
+            args.help = true;
+        }
+    }
+    
+    return args;
+}
+
+void usage() {
+    static char message[] =
+        "Usage:\n"
+        "--help       (-h): this info\n"
+        "--fullscreen (-f): run in the fullscreen mode\n"
+        "--vsync      (-s): enable (adaptive) vsync\n"
+        "--fps        (-p): emit fps counter every 3 seconds in console\n"
+    ;
+    
+    fputs(message, stderr);
+}
+
 int main(int argc, char **argv) {
-    argc--; argv++;
+    args_t args = parse_arguments(argc, argv);
+    if (args.help) {
+        usage();
+        exit(1);
+    }
     
     // use system locale so that we can print UTF-8 to the console
     setlocale(LC_ALL, "");
     
     // initialize the OpenGL context
-    bool fullscreen = (argc > 0 && strcmp(argv[0], "--fullscreen") == 0);
     make_window_return_t actual_size = make_window(
         .title = "Old-school CG",
-        .fullscreen = fullscreen,
-        .vsync = false,
+        .fullscreen = args.fullscreen,
+        .vsync = args.vsync,
     );
     g_screen_width = actual_size.width;
     g_screen_height = actual_size.height;
@@ -195,7 +262,7 @@ int main(int argc, char **argv) {
     init();
     
     // game loop
-    loop();
+    loop(.emit_fps = args.fps);
     
     // call destroy_window from the event handler to quit
     // destroy_window();
