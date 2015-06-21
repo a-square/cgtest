@@ -2,6 +2,7 @@
 #include <locale.h>
 #include <getopt.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <SDL.h>
 #include "opengl.h"
 #include "util.h"

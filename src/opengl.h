@@ -11,7 +11,7 @@
 #   include <OpenGL/glext.h>
 #elif defined(HAVE_GL_GL_H)
 #   include <GL/gl.h>
-#   include <OpenGL/glext.h>
+#   include <GL/glext.h>
 #else
 #   error OpenGL not found!
 #endif
