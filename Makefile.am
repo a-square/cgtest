@@ -1,7 +1,7 @@
 ACLOCAL_AMFLAGS = -I m4
 
-AM_CPPFLAGS = $(SDL2_CFLAGS) $(GL_CFLAGS) -Wall -Wextra -Wno-initializer-overrides
-AM_LDFLAGS = $(SDL2_LIBS) $(GL_LIBS)
+AM_CPPFLAGS = $(SDL_CFLAGS) $(GL_CFLAGS) -Wall -Wextra -Wno-initializer-overrides
+AM_LDFLAGS = $(SDL_LIBS) $(GL_LIBS)
 
 bin_PROGRAMS = barebone tunnel
 

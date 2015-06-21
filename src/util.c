@@ -9,8 +9,8 @@
 static SDL_Window *g_window = NULL;
 static SDL_GLContext g_context = NULL;
 
-void verify_posix(int errnum, const char *message) {
-    verify(errnum == 0, "%s: %s", message, strerror(errnum));
+void verify_sdl(int retcode, const char *message) {
+    verify(retcode == 0, "%s: %s", message, SDL_GetError());
 }
 
 void verify_gl() {    

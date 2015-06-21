@@ -12,8 +12,11 @@ AC_CONFIG_HEADERS([config.h])
 AC_PROG_CC([clang gcc c99])
 AC_PROG_CC_STDC
 
-# Check for modules
-PKG_CHECK_MODULES([SDL2], [sdl2])
+SDL2_VERSION=2.0.0
+AM_PATH_SDL2($SDL2_VERSION,
+	:,
+	AC_MSG_ERROR([*** SDL version $SDL_VERSION not found!])
+)
 
 # Checks for OpenGL
 AX_CHECK_GL

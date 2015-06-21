@@ -1,7 +1,6 @@
 #include <stddef.h>
 #include <locale.h>
 #include <getopt.h>
-#include <pthread.h>
 #include <SDL.h>
 #include "opengl.h"
 #include "util.h"
@@ -16,7 +15,7 @@ static vertex_t g_vs[4];
 static GLuint g_shaders;
 
 static frame_t g_frames[2];
-static pthread_mutex_t g_frame_mutexes[2];
+static SDL_mutex *g_frame_mutexes[2];
 
 int g_screen_width, g_screen_height;
 
@@ -63,8 +62,8 @@ static void render_loop_p(render_loop_params_t p) {
     int current_frame = 1, prev_frame = 1 - current_frame;
 
     for (;;) {
-        verify_posix(
-            pthread_mutex_lock(&g_frame_mutexes[current_frame]),
+        verify_sdl(
+            SDL_LockMutex(g_frame_mutexes[current_frame]),
             "Render loop mutex lock"
         );
         
@@ -89,8 +88,8 @@ static void render_loop_p(render_loop_params_t p) {
         draw_frame(current_frame);
         swap_window_buffers();
         
-        verify_posix(
-            pthread_mutex_unlock(&g_frame_mutexes[current_frame]),
+        verify_sdl(
+            SDL_UnlockMutex(g_frame_mutexes[current_frame]),
             "Render loop mutex unlock"
         );
 
@@ -103,11 +102,11 @@ static void render_loop_p(render_loop_params_t p) {
 // game loop
 //
 
-void *game_loop_thread(void *context __attribute__((unused))) {
+int game_loop_thread(void *context __attribute__((unused))) {
     int current_frame = 0, prev_frame = 1 - current_frame;
     for (;;) {
-        verify_posix(
-            pthread_mutex_lock(&g_frame_mutexes[current_frame]),
+        verify_sdl(
+            SDL_LockMutex(g_frame_mutexes[current_frame]),
             "Game loop mutex lock"
         );
         
@@ -123,8 +122,8 @@ void *game_loop_thread(void *context __attribute__((unused))) {
             .prev_ticks = g_frames[prev_frame].ticks,
         );
         
-        verify_posix(
-            pthread_mutex_unlock(&g_frame_mutexes[current_frame]),
+        verify_sdl(
+            SDL_UnlockMutex(g_frame_mutexes[current_frame]),
             "Game loop mutex unlock"
         );
         
@@ -132,28 +131,20 @@ void *game_loop_thread(void *context __attribute__((unused))) {
         prev_frame = 1 - current_frame;
     }
     
-    return NULL;
+    return 0;
 }
 
 void game_loop() {
     for (int i = 0; i < 2; ++i) {
-        pthread_mutexattr_t attr;
-        pthread_mutexattr_init(&attr);
-        pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_NORMAL);
-        pthread_mutexattr_setprotocol(&attr, PTHREAD_PRIO_NONE);
-        
-        verify_posix(
-            pthread_mutex_init(&g_frame_mutexes[i], &attr),
-            "Could not create a mutex"
+        verify(
+            (g_frame_mutexes[i] = SDL_CreateMutex()),
+            "Could not create a mutex: %s", SDL_GetError()
         );
-            
-        pthread_mutexattr_destroy(&attr);
     }
     
-    pthread_t game_thread;
-    verify_posix(
-        pthread_create(&game_thread, NULL, game_loop_thread, NULL),
-        "Could not create the game loop thread"
+    verify(
+        SDL_CreateThread(game_loop_thread, "Game loop", NULL),
+        "Could not create the game loop thread: %s", SDL_GetError()
     );
 }
 
