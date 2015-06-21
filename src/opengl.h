@@ -9,7 +9,7 @@
 #if defined(HAVE_OPENGL_GL_H)
 #   include <OpenGL/gl.h>
 #   include <OpenGL/glext.h>
-#elif defined(HAVE_GL_G_H)
+#elif defined(HAVE_GL_GL_H)
 #   include <GL/gl.h>
 #   include <OpenGL/glext.h>
 #else
