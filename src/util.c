@@ -118,9 +118,8 @@ make_window_return_t make_window_p(make_window_params_t p) {
     );
     verify(g_window, "Could not create a %d⨉%d window: %s", p.width, p.height, SDL_GetError());
     
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
     g_context = SDL_GL_CreateContext(g_window);
     verify(g_context, "Could not initialize OpenGL: %s", SDL_GetError());
     

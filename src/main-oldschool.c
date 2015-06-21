@@ -38,7 +38,7 @@ static frame_t create_frame() {
 static void draw_frame(int current_frame) {
     // upload the frame to the GPU
     glTexImage2D(
-        GL_TEXTURE_RECTANGLE,
+        GL_TEXTURE_RECTANGLE_ARB,
         0,
         GL_RGBA,
         g_screen_width,
@@ -168,10 +168,6 @@ static void initialize_objects() {
     
     glDisable(GL_DITHER); verify_gl();
     
-    GLuint vertex_array;
-    glGenVertexArrays(1, &vertex_array); verify_gl();
-    glBindVertexArray(vertex_array); verify_gl();
-    
     float u = g_screen_width;
     float v = g_screen_height;
     g_vs[0] = (vertex_t){ .x = -1, .y = -1, .z = 0, .u = 0, .v = v }; // bottom left
@@ -186,34 +182,33 @@ static void initialize_objects() {
     glActiveTexture(GL_TEXTURE0);
     GLuint texture;
     glGenTextures(1, &texture); verify_gl();
-    glBindTexture(GL_TEXTURE_RECTANGLE, texture); verify_gl();    
-    glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MIN_FILTER, GL_NEAREST); verify_gl();
-    glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MAG_FILTER, GL_NEAREST); verify_gl();
+    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, texture); verify_gl();    
+    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_NEAREST); verify_gl();
+    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_NEAREST); verify_gl();
     
     static const char *vertex_shader_source = ""
-        "#version 330\n"
+        "#version 120\n"
         "\n"
-        "in vec3 coord;\n"
-        "in vec2 texCoord;\n"
-        "out vec2 fragTexCoord;\n"
+        "attribute vec4 coord;\n"
+        "attribute vec2 texCoord;\n"
+        "varying vec2 fragTexCoord;\n"
         "\n"
         "void main() {\n"
+        "    gl_Position = coord;\n"
         "    fragTexCoord = texCoord;\n"
-        "    gl_Position = vec4(coord, 1);\n"
         "}\n";
     GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER); verify_gl();
     glShaderSource(vertex_shader, 1, &vertex_shader_source, NULL); verify_gl();
     glCompileShader(vertex_shader); verify_gl_shader(vertex_shader);
     
     static const char *fragment_shader_source = ""
-        "#version 330\n"
+        "#version 120\n"
         "\n"
         "uniform sampler2DRect tex;\n"
-        "in vec2 fragTexCoord;\n"
-        "out vec4 finalColor;\n"
+        "varying vec2 fragTexCoord;\n"
         "\n"
         "void main() {\n"
-        "    finalColor = texture(tex, fragTexCoord);\n"
+        "    gl_FragColor = texture2DRect(tex, fragTexCoord);\n"
         "}\n";
     GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER); verify_gl();
     glShaderSource(fragment_shader, 1, &fragment_shader_source, NULL); verify_gl();

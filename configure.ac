@@ -17,7 +17,6 @@ PKG_CHECK_MODULES([SDL2], [sdl2])
 
 # Checks for OpenGL
 AX_CHECK_GL
-AC_CHECK_HEADERS([OpenGL/glcorearb.h GL/glcorearb.h glcorearb.h])
 
 # Checks for header files.
 AC_CHECK_HEADERS([locale.h stddef.h sys/time.h])

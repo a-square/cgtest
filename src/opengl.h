@@ -6,14 +6,12 @@
 #   include <windows.h>
 #endif
 
-#if defined(__APPLE__)
-#   include <OpenGL/gl3.h>
-#elif defined(HAVE_OPENGL_GLCOREARB_H)
-#   include <OpenGL/glcorearb.h>
-#elif defined(HAVE_GL_GLCOREARB_H)
-#   include <GL/glcorearb.h>
-#elif defined(HAVE_GLCOREARB_H)
-#   include <glcorearb.h>
+#if defined(HAVE_OPENGL_GL_H)
+#   include <OpenGL/gl.h>
+#   include <OpenGL/glext.h>
+#elif defined(HAVE_GL_G_H)
+#   include <GL/gl.h>
+#   include <OpenGL/glext.h>
 #else
 #   error OpenGL not found!
 #endif
