@@ -73,7 +73,8 @@ void log_printf(const char *format, ...) {
     gettimeofday(&tv, NULL);
     struct tm *tm = localtime(&tv.tv_sec);
     size_t offset = strftime(time_str, sizeof(time_str), "%F %T", tm);
-    sprintf(time_str + offset, ".%03d", tv.tv_usec / 1000);
+    int usec = tv.tv_usec / 1000;
+    sprintf(time_str + offset, ".%03d", usec);
     
     // form the message
     va_list args;

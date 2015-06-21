@@ -1,9 +1,19 @@
 #include "config.h"
 
-#if defined(HAVE_OPENGL_GL_H)
+#if defined(_WIN32) && defined(HAVE_WINDOWS_H)
+#   define UNICODE 1
+#   define WIN32_LEAN_AND_MEAN
+#   include <windows.h>
+#endif
+
+#if defined(__APPLE__)
 #   include <OpenGL/gl3.h>
-#elif defined(HAVE_GL_GL_H)
-#   include <GL/gl3.h>
-#else // provide OpenGL yourself
-#   include <gl3.h>
+#elif defined(HAVE_OPENGL_GLCOREARB_H)
+#   include <OpenGL/glcorearb.h>
+#elif defined(HAVE_GL_GLCOREARB_H)
+#   include <GL/glcorearb.h>
+#elif defined(HAVE_GLCOREARB_H)
+#   include <glcorearb.h>
+#else
+#   error OpenGL not found!
 #endif
