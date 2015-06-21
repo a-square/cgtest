@@ -309,7 +309,13 @@ int main(int argc, char **argv) {
     }
     
     // use system locale so that we can print UTF-8 to the console
-    setlocale(LC_ALL, "");
+#   if defined(_WIN32)
+#       define LOCALE_STRING ".65001"
+#   else
+#       define LOCALE_STRING ""
+#   endif
+    setlocale(LC_ALL, LOCALE_STRING);
+#   undef LOCALE_STRING
     
     // initialize the OpenGL context
     make_window_return_t actual_size = make_window(
