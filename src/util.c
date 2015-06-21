@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <sys/time.h>
 #include <SDL.h>
-#include <gl3.h>
+#include "opengl.h"
 
 // just one window is needed
 static SDL_Window *g_window = NULL;

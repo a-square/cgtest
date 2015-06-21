@@ -3,7 +3,7 @@
 #include <getopt.h>
 #include <pthread.h>
 #include <SDL.h>
-#include <gl3.h>
+#include "opengl.h"
 #include "util.h"
 #include "oldschool.h"
 

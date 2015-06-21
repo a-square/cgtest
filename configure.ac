@@ -3,13 +3,14 @@
 
 AC_PREREQ([2.69])
 AC_INIT([cgtest], [0.1.0], [lex.aver@gmail.com])
-AM_INIT_AUTOMAKE
-AM_CFLAGS=-Wall -Wextra -Wno-initializer-overrides -g -O3 -std=gnu11 -pthread
-AC_CONFIG_SRCDIR([barebone.c])
+AC_CONFIG_MACRO_DIR([m4])
+AM_INIT_AUTOMAKE([-Wall -Werror subdir-objects])
+AC_CONFIG_SRCDIR([src/util.c])
 AC_CONFIG_HEADERS([config.h])
 
-# Checks for programs.
-AC_PROG_CC
+# Checks for compilers
+AC_PROG_CC([clang gcc c99])
+AC_PROG_CC_STDC
 
 # Check for modules
 PKG_CHECK_MODULES([SDL2], [sdl2])
@@ -21,10 +22,10 @@ AX_CHECK_GL
 AC_CHECK_HEADERS([locale.h stddef.h sys/time.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
-AC_CHECK_HEADER_STDBOOL
-AC_C_INLINE
-AC_C_RESTRICT
-AC_TYPE_SIZE_T
+#AC_CHECK_HEADER_STDBOOL
+#AC_C_INLINE
+#AC_C_RESTRICT
+#AC_TYPE_SIZE_T
 
 # Checks for library functions.
 AC_CHECK_FUNCS([gettimeofday setlocale strerror])

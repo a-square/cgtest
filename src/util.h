@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdbool.h>
-#include <gltypes.h>
+#include "opengl.h" // TODO: create smaller include
 
 // log_printf
 

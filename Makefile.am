@@ -1,4 +1,9 @@
-bin_PROGRAMS=barebone tunnel
+ACLOCAL_AMFLAGS = -I m4
 
-barebone_SOURCES=barebone.c main-oldschool.c util.c
-tunnel_SOURCES=tunnel.c main-oldschool.c util.c
+AM_CPPFLAGS = $(SDL2_CFLAGS) $(GL_CFLAGS) -Wall -Wextra -Wno-initializer-overrides
+AM_LDFLAGS = $(SDL2_LIBS) $(GL_LIBS)
+
+bin_PROGRAMS = barebone tunnel
+
+barebone_SOURCES = src/barebone.c src/main-oldschool.c src/util.c
+tunnel_SOURCES = src/tunnel.c src/main-oldschool.c src/util.c
