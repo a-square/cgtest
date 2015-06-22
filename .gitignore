@@ -5,6 +5,8 @@
 # *.[oa]
 # *~
 
+.DS_Store
+
 *.[oa]
 *~
 /barebone

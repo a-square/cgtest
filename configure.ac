@@ -21,6 +21,19 @@ AM_PATH_SDL2($SDL2_VERSION,
 # Checks for OpenGL
 AX_CHECK_GL
 
+GLEW_CFLAGS=""
+GLEW_LIBS="-lGLEW"
+PKG_CHECK_MODULES(GLEW, [glew], [], [
+		  AC_CHECK_HEADER([GL/glew.h],
+		  [],
+		  AC_MSG_ERROR([GLEW required]))
+		  AC_CHECK_LIB([GLEW],
+			       [glewInit],
+			       [],
+			       AC_MSG_ERROR([GLEW required]))
+		  ])
+
+
 # Checks for header files.
 AC_CHECK_HEADERS([locale.h stddef.h sys/time.h])
 

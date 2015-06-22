@@ -90,7 +90,11 @@ void log_printf(const char *format, ...) {
 
 make_window_return_t make_window_p(make_window_params_t p) {
     assert(!g_window, "Tried to create a window twice");
-    SDL_Init(SDL_INIT_VIDEO);
+    
+    verify_sdl(
+        SDL_Init(SDL_INIT_EVERYTHING),
+        "Could not initialize SDL"
+    );
     
     SDL_WindowFlags flags = 0
         | SDL_WINDOW_OPENGL
@@ -122,6 +126,13 @@ make_window_return_t make_window_p(make_window_params_t p) {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
     g_context = SDL_GL_CreateContext(g_window);
     verify(g_context, "Could not initialize OpenGL: %s", SDL_GetError());
+    
+    glewExperimental = GL_TRUE;
+    GLenum err = glewInit();
+    verify(
+        err == GLEW_OK,
+        "Could not initialize GLEW: %s", glewGetErrorString(err)
+    );
     
     if (p.vsync) {
         verify(
