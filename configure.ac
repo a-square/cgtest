@@ -12,6 +12,7 @@ AC_CONFIG_HEADERS([config.h])
 AC_PROG_CC([clang gcc c99])
 AC_PROG_CC_STDC
 
+# Checks for SDL
 SDL2_VERSION=2.0.0
 AM_PATH_SDL2($SDL2_VERSION,
 	:,
