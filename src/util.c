@@ -134,17 +134,14 @@ make_window_return_t make_window_p(make_window_params_t p) {
         "Could not initialize GLEW: %s", glewGetErrorString(err)
     );
     
+    bool vsyncSuccess;
     if (p.vsync) {
-        verify(
-            SDL_GL_SetSwapInterval(-1) == 0 || SDL_GL_SetSwapInterval(1) == 0,
-            "Could not set the swap interval: %s", SDL_GetError()
-        );
-        SDL_ClearError();
+        vsyncSuccess = (SDL_GL_SetSwapInterval(-1) == 0 || SDL_GL_SetSwapInterval(1) == 0);
     } else {
-        verify(
-            SDL_GL_SetSwapInterval(0) == 0,
-            "Could not set the swap interval: %s", SDL_GetError()
-        );
+        vsyncSuccess = (SDL_GL_SetSwapInterval(0) == 0);
+    }
+    if (!vsyncSuccess) {
+        log_printf("Warning: could not set vsync value: %s", SDL_GetError());
     }
     
     make_window_return_t r;
