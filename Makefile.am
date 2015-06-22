@@ -7,6 +7,6 @@ bin_PROGRAMS = barebone tunnel
 barebone_SOURCES = src/barebone.c src/main-oldschool.c src/util.c
 tunnel_SOURCES = src/tunnel.c src/main-oldschool.c src/util.c
 
-LDADD = $(SDL_LIBS) $(GLEW_LIBS) $(GL_LIBS)
+LDADD = $(SDL_LIBS) $(GLEW_LIBS) $(GL_LIBS) -lm
 
 EXTRA_DIST = src/opengl.h src/oldschool.h src/util.h
