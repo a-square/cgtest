@@ -1,4 +1,3 @@
-#define _GNU_SOURCE
 #include "util.h"
 #include <stdarg.h>
 #include <stdio.h>
@@ -81,13 +80,12 @@ void log_printf(const char *format, ...) {
     // form the message
     va_list args;
     va_start(args, format);
-    char *message;
-    vasprintf(&message, format, args);
+    char message[1024 * 1024];
+    vsnprintf(message, sizeof(message), format, args);
     va_end(args);
     
     // print and then deallocate the message
     fprintf(stderr, "[%s] %s\n", time_str, message);
-    free(message);
 }
 
 make_window_return_t make_window_p(make_window_params_t p) {
